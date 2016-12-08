@@ -21,7 +21,7 @@ AVL::~AVL()
 
 NodeInterface * AVL::getRootNode()
 {
-    Node* ret;
+    Node* ret = NULL;
     return ret;
 }
 
