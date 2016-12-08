@@ -7,6 +7,7 @@
 //
 
 #include <stdio.h>
+#include <cstdlib>
 #include "AVL.h"
 
 AVL::AVL()
@@ -16,7 +17,7 @@ AVL::AVL()
 
 AVL::~AVL()
 {
-    //call remove on everything
+    //if we even need it, we can recycle the code from BST::clear() in lab 6
 }
 
 NodeInterface * AVL::getRootNode()
@@ -27,9 +28,8 @@ NodeInterface * AVL::getRootNode()
 bool AVL::add(int data)
 {
     bool retVal = addHelper(_Root, data);
-    if (retVal == true) {
-        //rebalance tree
-    }
+    //
+    //
     return retVal;
 }
 
@@ -37,11 +37,105 @@ bool AVL::remove(int data)
 {
     Node* remR = _Root;
     bool retVal = removeHelper(remR, data);
-    
+    updateHeights(_Root);
     
     return retVal;
 }
 
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+void AVL::rebalance(Node* here)
+{
+    if (here->leftChild == NULL && here->rightChild == NULL) return;
+    if (getTreeHeight(here->leftChild) - getTreeHeight(here->rightChild) > 1)
+    {
+        //left is too long
+        //LR
+        if (getTreeHeight(here->leftChild->leftChild) < getTreeHeight(here->leftChild->rightChild))
+        {
+            //rotate here->leftChild left
+            //--//
+            Node* temp = here->leftChild;
+            here->leftChild = here->leftChild->rightChild;
+            here->leftChild->leftChild = temp;
+            //--//might not be the whole solution but its a start
+        }
+        //LL
+        //rotate here right
+        Node* here_parent = findVal(_Root, here->value);
+        if (here_parent == here) /* here == _Root!!*/
+        {
+            _Root = here->leftChild;
+            _Root->rightChild = here;
+        }
+        else
+        {
+            Node* temp = here_parent->leftChild;
+            here_parent->leftChild = here_parent->leftChild->leftChild;
+            here_parent->leftChild->rightChild = temp;
+        }
+        
+    }
+    if (getTreeHeight(here->leftChild) - getTreeHeight(here->rightChild) < -1)
+    {
+        //right is too long
+        //RL
+        if (getTreeHeight(here->rightChild->leftChild) > getTreeHeight(here->rightChild->rightChild))
+        {
+            //rotate here->rightChild right
+            //--//
+            Node* temp = here->rightChild;
+            here->rightChild = here->rightChild->leftChild;
+            here->rightChild->rightChild = temp;
+            //--//
+        }
+        //RR
+        //rotate here left
+        Node* here_parent = findVal(_Root, here->value);
+        if (here_parent == here) /* here == _Root!!*/
+        {
+            _Root = here->rightChild;
+            _Root->leftChild = here;
+        }
+        else
+        {
+            Node* temp = here_parent->rightChild;
+            here_parent->rightChild = here_parent->rightChild->rightChild;
+            here_parent->rightChild->leftChild = temp;
+        }
+    }
+    
+    return;
+}
+
+int AVL::getTreeHeight(Node* here)
+{
+    if (here == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        return here->height;
+    }
+}
+
+void AVL::updateHeights(Node* here)
+{
+    if (here == NULL) return;
+    if (here->leftChild == NULL && here->rightChild == NULL) { here->height = 1; return; };
+    updateHeights(here->leftChild);
+    updateHeights(here->rightChild);
+    if (getTreeHeight(here->leftChild) > getTreeHeight(here->rightChild))
+    {
+        if (here->height != getTreeHeight(here->leftChild) + 1) { here->height = getTreeHeight(here->leftChild) + 1; }
+    }
+    else
+    {
+        if (here->height != getTreeHeight(here->rightChild) + 1) { here->height = getTreeHeight(here->rightChild) + 1; }
+    }
+    return;
+}
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 
@@ -52,6 +146,7 @@ bool AVL::addHelper(Node* &here, int data)
     {
         here = new Node();
         here->value = data;
+        here->height = 1;
         return true;
     }
     if (here->value == data)
@@ -61,11 +156,37 @@ bool AVL::addHelper(Node* &here, int data)
     
     if (data < here->value)
     {
-        return addHelper(here->leftChild, data);
+        bool retVal = addHelper(here->leftChild, data);
+        if(retVal == true)
+        {
+            if (getTreeHeight(here->leftChild) > getTreeHeight(here->rightChild))
+            {
+                if (here->height != getTreeHeight(here->leftChild) + 1) { here->height = getTreeHeight(here->leftChild) + 1; }
+            }
+            else
+            {
+                if (here->height != getTreeHeight(here->rightChild) + 1) { here->height = getTreeHeight(here->rightChild) + 1; }
+            }
+        }
+        rebalance(here);//bugtest
+        return retVal;
     }
     else if (data > here->value)
     {
-        return addHelper(here->rightChild, data);
+        bool retVal = addHelper(here->rightChild, data);
+        if (retVal == true)
+        {
+            if (getTreeHeight(here->leftChild) > getTreeHeight(here->rightChild))
+            {
+                if (here->height != getTreeHeight(here->leftChild) + 1) { here->height = getTreeHeight(here->leftChild) + 1; }
+            }
+            else
+            {
+                if (here->height != getTreeHeight(here->rightChild) + 1) { here->height = getTreeHeight(here->rightChild) + 1; }
+            }
+        }
+        rebalance(here);//bugtest plz kthxby
+        return retVal;
     }
     
     else

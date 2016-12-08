@@ -51,7 +51,12 @@ public:
     bool add(int data);
     bool remove(int data);
     
-    //helper functions
+    //AVL helper functions
+    void rebalance(Node* here);
+    int getTreeHeight(Node* here);
+    void updateHeights(Node* here);
+    
+    //BST helper functions
     bool addHelper(Node* &here, int data);
     bool removeHelper(Node* here, int data);
     Node* findVal(Node* find, int data);
