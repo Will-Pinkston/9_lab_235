@@ -16,5 +16,5 @@
 */
 AVLInterface * Factory::getAVL()
 {
-	return NULL;//Modify this line
+	return new AVL();//Modify this line
 }
