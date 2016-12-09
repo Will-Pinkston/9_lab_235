@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <cstdlib>
+#include <iostream>
 #include "AVL.h"
 
 AVL::AVL()
@@ -53,28 +54,10 @@ void AVL::rebalance(Node* here)
         //LR
         if (getTreeHeight(here->leftChild->leftChild) < getTreeHeight(here->leftChild->rightChild))
         {
-            //rotate here->leftChild left
-            //--//
-            Node* temp = here->leftChild;
-            here->leftChild = here->leftChild->rightChild;
-            here->leftChild->leftChild = temp;
-            //--//might not be the whole solution but its a start
+            rotateLeft(here->leftChild);
         }
         //LL
-        //rotate here right
-        Node* here_parent = findVal(_Root, here->value);
-        if (here_parent == here) /* here == _Root!!*/
-        {
-            _Root = here->leftChild;
-            _Root->rightChild = here;
-        }
-        else
-        {
-            Node* temp = here_parent->leftChild;
-            here_parent->leftChild = here_parent->leftChild->leftChild;
-            here_parent->leftChild->rightChild = temp;
-        }
-        
+        rotateRight(here);
     }
     if (getTreeHeight(here->leftChild) - getTreeHeight(here->rightChild) < -1)
     {
@@ -82,30 +65,67 @@ void AVL::rebalance(Node* here)
         //RL
         if (getTreeHeight(here->rightChild->leftChild) > getTreeHeight(here->rightChild->rightChild))
         {
-            //rotate here->rightChild right
-            //--//
-            Node* temp = here->rightChild;
-            here->rightChild = here->rightChild->leftChild;
-            here->rightChild->rightChild = temp;
-            //--//
+            rotateRight(here->rightChild);
         }
         //RR
-        //rotate here left
-        Node* here_parent = findVal(_Root, here->value);
-        if (here_parent == here) /* here == _Root!!*/
-        {
-            _Root = here->rightChild;
-            _Root->leftChild = here;
-        }
-        else
-        {
-            Node* temp = here_parent->rightChild;
-            here_parent->rightChild = here_parent->rightChild->rightChild;
-            here_parent->rightChild->leftChild = temp;
-        }
+        rotateLeft(here);
     }
     
     return;
+}
+
+void AVL::rotateLeft(Node* a)
+{
+    Node* parent = findVal(_Root, a->value);//--//
+    if (parent == a)
+    {
+        _Root = a->rightChild;
+        a->rightChild = _Root->leftChild;
+        _Root->leftChild = a;
+        return;
+    }
+    bool isLeft = false;
+    if (parent->leftChild == a) { isLeft = true; }
+    if (isLeft)
+    {
+        parent->leftChild = a->rightChild;
+        a->rightChild = parent->leftChild->leftChild;
+        parent->leftChild->leftChild = a;
+        return;
+    }
+    else if (!isLeft)
+    {
+        parent->rightChild = a->rightChild;
+        a->rightChild = parent->rightChild->leftChild;
+        parent->rightChild->leftChild = a;
+        return;
+    }
+}
+
+void AVL::rotateRight(Node* a)
+{
+    Node* parent = findVal(_Root, a->value);//--//
+    if (parent == a)
+    {
+        _Root = a->leftChild;
+        a->leftChild = _Root->rightChild;
+        _Root->rightChild = a;
+        return;
+    }
+    bool isLeft = false;
+    if (parent->leftChild == a) { isLeft = true; }
+    if (isLeft)
+    {
+        parent->leftChild = a->leftChild;
+        a->leftChild = parent->leftChild->rightChild;
+        parent->leftChild->rightChild = a;
+    }
+    else if (!isLeft)
+    {
+        parent->rightChild = a->leftChild;
+        a->leftChild = parent->rightChild->rightChild;
+        parent->rightChild->rightChild = a;
+    }
 }
 
 int AVL::getTreeHeight(Node* here)

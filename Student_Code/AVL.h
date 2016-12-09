@@ -53,6 +53,8 @@ public:
     
     //AVL helper functions
     void rebalance(Node* here);
+    void rotateLeft(Node* a);
+    void rotateRight(Node* a);
     int getTreeHeight(Node* here);
     void updateHeights(Node* here);
     
